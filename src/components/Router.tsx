@@ -3,7 +3,7 @@ import { App } from "./App";
 import { Info } from "./Info";
 
 export function Router() {
-  const path = window.location.pathname.split("/").filter(s => !!s);
+  const path = window.location.hash.replace("#", "").split("/").filter(s => !!s);
   console.log(path)
   if (path.length !== 3) {
     return <Info />
