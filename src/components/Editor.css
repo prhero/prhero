@@ -1,0 +1,10 @@
+.EditorHeader {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 0.8em;
+  height: 10px;
+}
+.DiffEditor {
+  width: 100%;
+  height: calc(100% - 30px);
+}
