@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/prhero/static/css/main.587c7ccf.chunk.css",
+    "main.js": "/prhero/static/js/main.cf0b0d0b.chunk.js",
+    "main.js.map": "/prhero/static/js/main.cf0b0d0b.chunk.js.map",
+    "runtime-main.js": "/prhero/static/js/runtime-main.88e56a9f.js",
+    "runtime-main.js.map": "/prhero/static/js/runtime-main.88e56a9f.js.map",
+    "static/css/2.764ccc25.chunk.css": "/prhero/static/css/2.764ccc25.chunk.css",
+    "static/js/2.9243836d.chunk.js": "/prhero/static/js/2.9243836d.chunk.js",
+    "static/js/2.9243836d.chunk.js.map": "/prhero/static/js/2.9243836d.chunk.js.map",
+    "index.html": "/prhero/index.html",
+    "precache-manifest.33f070a3807506df58de5e6c775b6d42.js": "/prhero/precache-manifest.33f070a3807506df58de5e6c775b6d42.js",
+    "service-worker.js": "/prhero/service-worker.js",
+    "static/css/2.764ccc25.chunk.css.map": "/prhero/static/css/2.764ccc25.chunk.css.map",
+    "static/css/main.587c7ccf.chunk.css.map": "/prhero/static/css/main.587c7ccf.chunk.css.map",
+    "static/js/2.9243836d.chunk.js.LICENSE": "/prhero/static/js/2.9243836d.chunk.js.LICENSE"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.88e56a9f.js",
+    "static/css/2.764ccc25.chunk.css",
+    "static/js/2.9243836d.chunk.js",
+    "static/css/main.587c7ccf.chunk.css",
+    "static/js/main.cf0b0d0b.chunk.js"
+  ]
+}
