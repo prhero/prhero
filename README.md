@@ -1,22 +1,17 @@
 # PRHero
 
-The GitHub UI for reviewing PR's isn't bad for simple changes but when PR's
-get larger and more complex it's better to view them in your editor where you
-can explore the changes in a file tree with better diffs.
-
-PRHero is bringing the file tree and rich diff experience to your browser for
-any pull request on GitHub. You don't have to clone the code to see it. It's
-brought about by my current frustrations with the GitHub pull request review
-experience and my desire to have a fully in browser workflow for reviewing
-PR's.
+Ever struggled reviewing a large pull request in GitHub? PRHero is an open
+source alternative UI for reviewing pull requests.
 
 ![](screen.png)
 
-What it does:
+What it will do:
 
 1. View PR's with a file tree explorer to see what's changed.
 2. Rich diffs using VSCode's monaco editor.
-3. Support for commenting (eventually).
+3. Pulls comments and CI checks inline to view the full status.
+4. Read comments without being interrupted in your review process.
+5. View only what's changed since you last looked at a pull request.
 
 ### Try it out
 
