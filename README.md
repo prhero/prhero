@@ -15,8 +15,8 @@ What it will do:
 
 ### Try it out
 
-Try the example https://colinjfw.github.io/prhero/#deliverybot/deploybot/24 or
-review any pull request at https://colinjfw.github.io/prhero/#OWNER/REPO/PR.
+Try the example https://colinjfw.github.io/prhero/?owner=deliverybot&repo=deploybot&pr=24 or
+review any pull request at https://colinjfw.github.io/prhero/.
 
 ### What's missing
 
