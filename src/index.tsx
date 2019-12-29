@@ -2,21 +2,17 @@ import React from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import { Router } from "./components/Router";
+import { BaseStyles } from "@primer/components";
 
 import "normalize.css";
 import "./index.css";
 
-(function extractAuth() {
-  const u = new URLSearchParams(window.location.search);
-  const token = u.get("token");
-  if (token) {
-    localStorage.setItem("token", token);
-    window.location.href = '/';
-  }
-})();
-
 ReactDOM.render(
-  <Router />,
+  <BaseStyles>
+    <div style={{ height: "100vh" }}>
+      <Router />
+    </div>
+  </BaseStyles>,
   document.getElementById("root")
 );
 

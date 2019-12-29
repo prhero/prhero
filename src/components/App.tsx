@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { usePrState } from "../state/github";
-import { Flex } from "./Flex";
 import { Tree } from "./Tree";
 import { Diff } from "./Diff";
 import { EditorHeader } from "./Editor";
-import { PrBody } from "./Pr";
+import { PrTitle } from "./Pr";
+import { Flex, Box } from "@primer/components";
 
 export interface Props {
   owner: string;
@@ -15,9 +15,8 @@ export interface Props {
 export function App({ owner, repo, pr }: Props) {
   const [opened, setOpened] = useState<string>();
   const [selected, setSelected] = useState<string>();
+  const [hovered, setHovered] = useState<string | null>(null);
   const prState = usePrState(owner, repo, pr, opened);
-
-  console.log(opened, selected);
 
   useEffect(() => {
     if (!selected && prState) {
@@ -30,23 +29,27 @@ export function App({ owner, repo, pr }: Props) {
   }
 
   return (
-    <main className="App bg-secondary full-height">
-      <Flex.Container className="full-height">
-        <Flex.Child flex={1} className="position-relative full-height">
-          <PrBody {...prState} />
+    <main className="App" style={{ height: "100%" }}>
+      <Flex height="70px">
+        <PrTitle {...prState} />
+      </Flex>
+      <Flex height="calc(100% - 70px)">
+        <Flex.Item width="300px" height="100%" overflowY="scroll">
           <Tree
             onOpen={setOpened}
             selected={selected}
             onSelect={setSelected}
+            hovered={hovered}
+            onHover={setHovered}
             changedFiles={prState.diffFiles.map(f => f.filename)}
             {...prState.root}
           />
-        </Flex.Child>
-        <Flex.Child flex={5} className="bg-primary full-height">
+        </Flex.Item>
+        <Flex.Item flex={1} height="100%">
           <EditorHeader>{selected}</EditorHeader>
           <Diff base={prState.base} head={prState.head} selected={selected} />
-        </Flex.Child>
-      </Flex.Container>
+        </Flex.Item>
+      </Flex>
     </main>
   );
 }

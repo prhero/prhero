@@ -33,6 +33,7 @@ export interface Ref {
 
 export interface PrState {
   title: string;
+  author: string;
   description: string;
   owner: string;
   repo: string;
@@ -194,14 +195,24 @@ async function getChildren(
   );
 }
 
-const cache: { [k: string]: any } = {};
+let cache: { [k: string]: any } = {};
+
+(function() {
+  const raw = localStorage.getItem("cache");
+  if (raw) {
+    cache = JSON.parse(raw);
+  }
+  setInterval(() => {
+    localStorage.setItem("cache", JSON.stringify(cache));
+  }, 1000);
+})();
 
 async function loadPrStateCached(
   owner: string,
   repo: string,
   number: number
 ): Promise<PrState> {
-  const version = "v1";
+  const version = "v2";
   const key = `${owner}.${repo}.${number}.${version}`;
   const val = cache[key];
   if (val) {
@@ -285,6 +296,7 @@ async function loadPrState(
     description: pull.body,
     state: pull.state,
     number: pull.number,
+    author: pull.user.login,
     owner,
     repo,
     root,

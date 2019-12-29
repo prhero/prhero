@@ -1,7 +1,6 @@
 import React from "react";
 import { DiffEditor as MonacoDiffEditor } from "@monaco-editor/react";
-
-import "./Editor.css";
+import styled from "styled-components";
 
 // TODO: Use default vscode way.
 const languages: { [k: string]: string | undefined } = {
@@ -14,7 +13,7 @@ const languages: { [k: string]: string | undefined } = {
   yml: "yaml",
   yaml: "yaml",
   Dockerfile: "dockerfile",
-  go: "go",
+  go: "go"
 };
 
 export interface Props {
@@ -23,24 +22,34 @@ export interface Props {
   modified: string;
 }
 
+const EditorContainer = styled.div`
+  width: 100%;
+  height: calc(100% - 30px);
+`;
+
 export function DiffEditor({ filename, original, modified }: Props) {
   const ext = filename.split(".").pop() || "";
   return (
-    <div className="DiffEditor">
-    <MonacoDiffEditor
-      original={original}
-      modified={modified}
-      language={languages[filename] || languages[ext]}
-      options={{
-        readOnly: true
-      }}
-      theme="dark"
-      height="100%"
-    />
-    </div>
+    <EditorContainer>
+      <MonacoDiffEditor
+        original={original}
+        modified={modified}
+        language={languages[filename] || languages[ext]}
+        options={{
+          readOnly: true
+        }}
+        height="100%"
+      />
+    </EditorContainer>
   );
 }
 
-export function EditorHeader({ children }: { children?: React.ReactNode }) {
-  return <p className="EditorHeader">{children}</p>;
-}
+export const EditorHeader = styled.p`
+  margin: 0;
+  padding: 5px;
+  font-size: 0.8em;
+  height: 30px;
+  font-weight: bold;
+  color: #586069;
+  border-bottom: thin solid #eee;
+`;
