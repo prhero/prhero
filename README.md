@@ -24,6 +24,7 @@ review any pull request at https://colinjfw.github.io/prhero/#OWNER/REPO/PR.
 - Smarter file tree expansion (will hit GitHub rate limits quickly).
 - Commenting.
 - PR approval.
+- Check run reports.
 
 ### What do you think?
 
