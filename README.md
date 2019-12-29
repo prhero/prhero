@@ -3,7 +3,7 @@
 Ever struggled reviewing a large pull request in GitHub? PRHero is an open
 source alternative UI for reviewing pull requests.
 
-![](screen.png)
+![](screen2.png)
 
 What it will do:
 
