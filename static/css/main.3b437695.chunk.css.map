@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.css"],"names":[],"mappings":"AAGA,kCACE,WACF","file":"main.3b437695.chunk.css","sourcesContent":["body, html, #root {\n  height: 100%;\n}\n#root:first-child {\n  height: 100%;\n}\n"]}
