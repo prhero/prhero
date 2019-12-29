@@ -4,7 +4,7 @@ import { Tree } from "./Tree";
 import { Diff } from "./Diff";
 import { EditorHeader } from "./Editor";
 import { PrTitle } from "./Pr";
-import { Flex, Box } from "@primer/components";
+import { Flex } from "@primer/components";
 
 export interface Props {
   owner: string;

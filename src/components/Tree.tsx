@@ -4,6 +4,7 @@ import { TreeObject } from "../state/github";
 import { useToggle } from "../state/util";
 import { File, Down, Right } from "../icons";
 import { dirname } from "../util";
+import { Text } from "@primer/components";
 
 const ListItem = styled.li`
   padding: 2px 0;
@@ -101,9 +102,9 @@ function TreeItem({
     >
       {active && <SelectedLine />}
       {hover && !active && <HoveredLine />}
-      <span className={changed ? "changed" : ""}>
+      <Text color={changed ? "green.5" : "black"}>
         <Icon type={type} open={open} /> {name}
-      </span>
+      </Text>
       {children.length > 0 && open && (
         <ListChildren>
           {sort(children).map(el => (
