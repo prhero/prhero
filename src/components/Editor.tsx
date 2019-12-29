@@ -13,7 +13,8 @@ const languages: { [k: string]: string | undefined } = {
   json: "json",
   yml: "yaml",
   yaml: "yaml",
-  Dockerfile: "dockerfile"
+  Dockerfile: "dockerfile",
+  go: "go",
 };
 
 export interface Props {

@@ -13,8 +13,11 @@ export interface Props {
 }
 
 export function App({ owner, repo, pr }: Props) {
+  const [opened, setOpened] = useState<string>();
   const [selected, setSelected] = useState<string>();
-  const prState = usePrState(owner, repo, pr);
+  const prState = usePrState(owner, repo, pr, opened);
+
+  console.log(opened, selected);
 
   useEffect(() => {
     if (!selected && prState) {
@@ -32,6 +35,7 @@ export function App({ owner, repo, pr }: Props) {
         <Flex.Child flex={1} className="position-relative full-height">
           <PrBody {...prState} />
           <Tree
+            onOpen={setOpened}
             selected={selected}
             onSelect={setSelected}
             changedFiles={prState.diffFiles.map(f => f.filename)}

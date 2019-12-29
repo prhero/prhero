@@ -6,6 +6,15 @@ import { Router } from "./components/Router";
 import "normalize.css";
 import "./index.css";
 
+(function extractAuth() {
+  const u = new URLSearchParams(window.location.search);
+  const token = u.get("token");
+  if (token) {
+    localStorage.setItem("token", token);
+    window.location.href = '/';
+  }
+})();
+
 ReactDOM.render(
   <Router />,
   document.getElementById("root")

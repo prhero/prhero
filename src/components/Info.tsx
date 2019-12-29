@@ -1,5 +1,7 @@
 import React from "react";
 
+const environment = process.env.REACT_APP_ENV;
+const login = `https://prhero-proxy.colinjfw.workers.dev/login?return=${environment}`;
 
 export function Info() {
   return (

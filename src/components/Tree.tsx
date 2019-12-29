@@ -4,11 +4,13 @@ import { useToggle } from "../state/util";
 import { File, Down, Right } from "../icons";
 
 import "./Tree.css";
+import { dirname } from "../util";
 
 interface Props extends TreeObject {
   changedFiles: string[];
   selected: string | null;
   onSelect: (path: string) => void;
+  onOpen: (path: string) => void;
 }
 
 function Icon({ type, open }: { type: "file" | "folder"; open: boolean }) {
@@ -34,6 +36,7 @@ function TreeItem({
   path,
   selected,
   changedFiles,
+  onOpen,
   onSelect
 }: Props) {
   const [open, toggleOpen] = useToggle();
@@ -46,8 +49,14 @@ function TreeItem({
 
   function handleClick(e: React.MouseEvent<HTMLElement>) {
     e.stopPropagation();
-    if (type === "folder") toggleOpen();
-    if (type === "file") onSelect(path);
+    if (type === "folder") {
+      onOpen(path);
+      toggleOpen();
+    }
+    if (type === "file") {
+      onOpen(dirname(path));
+      onSelect(path);
+    }
   }
 
   return (
@@ -55,7 +64,7 @@ function TreeItem({
       onClick={handleClick}
       className={`Tree-Item } ${
         active ? "Tree-selected text-white" : ""
-      }`}
+        }`}
     >
       {active && <TreeSelectedLine />}
       <span className={changed ? "Tree-changed text-green" : ""}>
@@ -65,6 +74,7 @@ function TreeItem({
         <ul className="Tree-Children">
           {sort(children).map(el => (
             <TreeItem
+              onOpen={onOpen}
               changedFiles={changedFiles}
               key={el.path}
               selected={selected}
@@ -78,19 +88,22 @@ function TreeItem({
   );
 }
 
-export function Tree({ children, onSelect, selected, changedFiles }: Props) {
+export function Tree({ children, onOpen, onSelect, selected, changedFiles }: Props) {
   return (
-    <ul className="Tree">
-      {sort(children).map(el => (
-        <TreeItem
-          changedFiles={changedFiles}
-          key={el.path}
-          selected={selected}
-          onSelect={onSelect}
-          {...el}
-        />
-      ))}
-    </ul>
+    <div className="Tree">
+      <ul className="Tree-Children">
+        {sort(children).map(el => (
+          <TreeItem
+            onOpen={onOpen}
+            changedFiles={changedFiles}
+            key={el.path}
+            selected={selected}
+            onSelect={onSelect}
+            {...el}
+          />
+        ))}
+      </ul>
+    </div>
   );
 }
 

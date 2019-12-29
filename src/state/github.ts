@@ -58,11 +58,33 @@ export interface TreeObject {
   children: TreeObject[];
 }
 
-export function usePrState(owner: string, repo: string, pr: number) {
+export function usePrState(
+  owner: string,
+  repo: string,
+  pr: number,
+  path?: string
+) {
   const [data, setData] = useState<PrState | null>(null);
   useEffect(() => {
-    loadPrStateCached(owner, repo, pr).then(setData);
-  }, [owner, repo, pr]);
+    async function run() {
+      let state = await loadPrStateCached(owner, repo, pr);
+      if (data) {
+        state.root = data.root;
+      }
+      if (path) {
+        const nextRoot = await mergeChildren(
+          state.root,
+          state.head.repo.owner,
+          state.head.repo.name,
+          state.head.ref,
+          path
+        );
+        state = { ...state, root: nextRoot };
+      }
+      setData(state);
+    }
+    run();
+  }, [owner, repo, pr, path]);
   return data;
 }
 
@@ -100,7 +122,7 @@ export function useDiff({
 async function loadRoot(
   owner: string,
   repo: string,
-  ref: string,
+  ref: string
 ): Promise<TreeObject> {
   const children = await getChildren(owner, repo, "", ref);
   return {
@@ -111,11 +133,33 @@ async function loadRoot(
   };
 }
 
+async function mergeChildren(
+  root: TreeObject,
+  owner: string,
+  repo: string,
+  ref: string,
+  path: string
+): Promise<TreeObject> {
+  const result: TreeObject = JSON.parse(JSON.stringify(root)); // Deep copy.
+  const segments = path.split("/");
+
+  let cur = result;
+  for (const seg of segments) {
+    cur = cur.children.find(c => c.name === seg)!;
+  }
+
+  if (cur.children.length > 0) {
+    return result;
+  }
+  cur.children = await getChildren(owner, repo, path, ref);
+  return result;
+}
+
 async function getChildren(
   owner: string,
   repo: string,
   path: string,
-  ref: string,
+  ref: string
 ): Promise<TreeObject[]> {
   const contents = (await client.repos
     .getContents({
@@ -125,6 +169,9 @@ async function getChildren(
       path
     })
     .then(r => r.data)) as any;
+  if (contents.type === "file") {
+    return [];
+  }
   return Promise.all(
     contents.map(
       async (c: any): Promise<TreeObject> => {
@@ -133,7 +180,7 @@ async function getChildren(
             type: "folder",
             name: c.name,
             path: c.path,
-            children: await getChildren(owner, repo, c.path, ref)
+            children: []
           };
         }
         return {
@@ -147,20 +194,22 @@ async function getChildren(
   );
 }
 
+const cache: { [k: string]: any } = {};
+
 async function loadPrStateCached(
   owner: string,
   repo: string,
   number: number
 ): Promise<PrState> {
-  const version = "3";
+  const version = "v1";
   const key = `${owner}.${repo}.${number}.${version}`;
-  const val = localStorage.getItem(key);
+  const val = cache[key];
   if (val) {
-    return JSON.parse(val);
+    return val;
   }
 
   const state = await loadPrState(owner, repo, number);
-  localStorage.setItem(key, JSON.stringify(state));
+  cache[key] = state;
   return state;
 }
 
@@ -170,15 +219,15 @@ async function getContentCached(
   ref: string,
   path: string
 ) {
-  const version = "3";
+  const version = "v1";
   const key = `${owner}.${repo}.${ref}.${path}.${version}`;
-  const val = localStorage.getItem(key);
+  const val = cache[key];
   if (val) {
     return val;
   }
 
   const content = await getContent(owner, repo, ref, path);
-  localStorage.setItem(key, content);
+  cache[key] = content;
   return content;
 }
 
@@ -225,7 +274,11 @@ async function loadPrState(
     sha: f.sha,
     status: f.status
   }));
-  const root = await loadRoot(pull.head.repo.owner.login, pull.head.repo.name, pull.head.ref);
+  const root = await loadRoot(
+    pull.head.repo.owner.login,
+    pull.head.repo.name,
+    pull.head.ref
+  );
 
   return {
     title: pull.title,
