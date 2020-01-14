@@ -1,27 +1,27 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "c69dbc6d45d972ced56332e0f26f1066",
+    "revision": "c965d3f5658539d91773f663122dd513",
     "url": "/prhero/index.html"
   },
   {
-    "revision": "5c691f5028b28809b434",
+    "revision": "6877913c9c4703b6df85",
     "url": "/prhero/static/css/2.764ccc25.chunk.css"
   },
   {
-    "revision": "296f56fb46bd1bbe5acd",
+    "revision": "14a87c44234fe7a770fc",
     "url": "/prhero/static/css/main.3b437695.chunk.css"
   },
   {
-    "revision": "5c691f5028b28809b434",
-    "url": "/prhero/static/js/2.e5279cb7.chunk.js"
+    "revision": "6877913c9c4703b6df85",
+    "url": "/prhero/static/js/2.bc0cdc04.chunk.js"
   },
   {
     "revision": "bb46266b2d4e7395d2c4dcdf63a0a674",
-    "url": "/prhero/static/js/2.e5279cb7.chunk.js.LICENSE"
+    "url": "/prhero/static/js/2.bc0cdc04.chunk.js.LICENSE"
   },
   {
-    "revision": "296f56fb46bd1bbe5acd",
-    "url": "/prhero/static/js/main.c5859fdc.chunk.js"
+    "revision": "14a87c44234fe7a770fc",
+    "url": "/prhero/static/js/main.09c4187e.chunk.js"
   },
   {
     "revision": "9bb355abf8e467b72212",
