@@ -53,7 +53,12 @@ export function App({ owner, repo, pr }: Props) {
         </Flex.Item>
         <Flex.Item flex={1} height="100%">
           <EditorHeader>{selected.path}</EditorHeader>
-          <Diff base={prState.base} head={prState.head} selected={selected} />
+          <Diff
+            pr={prState.pr}
+            base={prState.base}
+            head={prState.head}
+            selected={selected}
+          />
         </Flex.Item>
       </Flex>
     </main>

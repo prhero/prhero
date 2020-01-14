@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import Octokit from "@octokit/rest";
-
-const client = new Octokit();
+import { Pr, Ref, getContent, getPr, getDiff, getFiles } from "./api";
 
 export type FileStatus = "added" | "modified" | "removed" | "unchanged";
 
@@ -24,16 +22,8 @@ export interface Commit {
   };
 }
 
-export interface Ref {
-  ref: string;
-  sha: string;
-  repo: {
-    owner: string;
-    name: string;
-  };
-}
-
 export interface PrState {
+  pr: Pr;
   title: string;
   author: string;
   description: string;
@@ -71,22 +61,21 @@ export function usePrState(
   const [data, setData] = useState<PrState | null>(null);
   useEffect(() => {
     async function run() {
-      let state = await loadPrStateCached(owner, repo, pr);
-      if (data) {
-        state.root = data.root;
-      }
-      if (path) {
-        const nextRoot = await mergeChildren(
-          state.root,
-          state.head.repo.owner,
-          state.head.repo.name,
-          state.head.ref,
-          path,
-          state.diffFiles
-        );
-        state = { ...state, root: nextRoot };
-      }
-      setData(state);
+      const nextState = await prState(owner, repo, pr);
+      const nextChildren = path
+        ? await children(
+            nextState.pr,
+            nextState.head,
+            path,
+            nextState.diffFiles
+          )
+        : null;
+      setData(prevState => {
+        if (prevState && nextChildren && path) {
+          nextState.root = mergeChildren(prevState.root, path, nextChildren);
+        }
+        return { ...nextState };
+      });
     }
     run();
   }, [owner, repo, pr, path]);
@@ -94,86 +83,77 @@ export function usePrState(
 }
 
 export function useDiff({
+  pr,
   base,
   head,
   obj
 }: {
+  pr: Pr;
   base: Ref;
   head: Ref;
   obj: TreeObject;
 }) {
   const [data, setData] = useState<DiffState | null>(null);
   useEffect(() => {
+    function fetchOriginal() {
+      if (obj.status === "added") {
+        return "";
+      }
+      return getContent(pr, base, obj.path);
+    }
+    function fetchModified() {
+      if (obj.status === "removed") {
+        return "";
+      }
+      return getContent(pr, head, obj.path);
+    }
+
     async function run() {
-      const original =
-        obj.status === "added"
-          ? ""
-          : await getContentCached(
-              base.repo.owner,
-              base.repo.name,
-              base.ref,
-              obj.path
-            );
-      const modified =
-        obj.status === "removed"
-          ? ""
-          : await getContentCached(
-              head.repo.owner,
-              head.repo.name,
-              head.ref,
-              obj.path
-            );
+      const original = await fetchOriginal();
+      const modified = await fetchModified();
       setData({ original, modified, filename: obj.path });
     }
     run();
-  }, [base, head, obj]);
+  }, [pr, base, head, obj]);
   return data;
 }
 
-async function loadRoot(
-  owner: string,
-  repo: string,
-  ref: string,
+function mergeChildren(
+  root: TreeObject,
+  path: string,
+  children: TreeObject[]
+): TreeObject {
+  const result: TreeObject = JSON.parse(JSON.stringify(root)); // Deep copy.
+  const segments = path.split("/");
+  let cur = result;
+  for (const seg of segments) {
+    cur = cur.children.find(c => c.name === seg)!;
+  }
+  if (cur.children.length > 0) {
+    return result;
+  }
+  cur.children = children;
+  return result;
+}
+
+async function root(
+  pr: Pr,
+  ref: Ref,
   diffFiles: FileDiff[]
 ): Promise<TreeObject> {
-  const children = await getChildren(owner, repo, "", ref, diffFiles);
   return {
     type: "folder",
     path: "/",
     name: "/",
     status: "unchanged",
-    children
+    children: await children(pr, ref, "", diffFiles)
   };
 }
 
-async function mergeChildren(
-  root: TreeObject,
-  owner: string,
-  repo: string,
-  ref: string,
+async function children(
+  pr: Pr,
+  ref: Ref,
   path: string,
-  diffFiles: FileDiff[]
-): Promise<TreeObject> {
-  const result: TreeObject = JSON.parse(JSON.stringify(root)); // Deep copy.
-  const segments = path.split("/");
-
-  let cur = result;
-  for (const seg of segments) {
-    cur = cur.children.find(c => c.name === seg)!;
-  }
-
-  if (cur.children.length > 0) {
-    return result;
-  }
-  cur.children = await getChildren(owner, repo, path, ref, diffFiles);
-  return result;
-}
-
-async function getChildren(
-  owner: string,
-  repo: string,
-  path: string,
-  ref: string,
   diffFiles: FileDiff[]
 ): Promise<TreeObject[]> {
   function fileStatus(type: "folder" | "file", path: string) {
@@ -189,20 +169,13 @@ async function getChildren(
     return "unchanged";
   }
 
-  const contents = (await client.repos
-    .getContents({
-      owner,
-      repo,
-      ref,
-      path
-    })
-    .then(r => r.data)) as any;
+  const contents = await getFiles(pr, ref, path);
   if (contents.type === "file") {
     return [];
   }
   return Promise.all(
     contents.map(
-      async (c: any): Promise<TreeObject> => {
+      (c: any): TreeObject => {
         if (c.type === "dir") {
           return {
             type: "folder",
@@ -224,88 +197,9 @@ async function getChildren(
   );
 }
 
-let cache: { [k: string]: any } = {};
-
-(function() {
-  const raw = localStorage.getItem("cache");
-  if (raw) {
-    cache = JSON.parse(raw);
-  }
-  setInterval(() => {
-    localStorage.setItem("cache", JSON.stringify(cache));
-  }, 1000);
-})();
-
-async function loadPrStateCached(
-  owner: string,
-  repo: string,
-  number: number
-): Promise<PrState> {
-  const version = "v2";
-  const key = `${owner}.${repo}.${number}.${version}`;
-  const val = cache[key];
-  if (val) {
-    return val;
-  }
-
-  const state = await loadPrState(owner, repo, number);
-  cache[key] = state;
-  return state;
-}
-
-async function getContentCached(
-  owner: string,
-  repo: string,
-  ref: string,
-  path: string
-) {
-  const version = "v1";
-  const key = `${owner}.${repo}.${ref}.${path}.${version}`;
-  const val = cache[key];
-  if (val) {
-    return val;
-  }
-
-  const content = await getContent(owner, repo, ref, path);
-  cache[key] = content;
-  return content;
-}
-
-function getContent(owner: string, repo: string, ref: string, path: string) {
-  return client.repos
-    .getContents({
-      owner,
-      repo,
-      ref,
-      path,
-      headers: {
-        accept: "application/vnd.github.v3.raw"
-      }
-    })
-    .then(r => r.data) as Promise<string>;
-}
-
-async function loadPrState(
-  owner: string,
-  repo: string,
-  number: number
-): Promise<PrState> {
-  const pull = await client.pulls
-    .get({
-      owner,
-      repo,
-      pull_number: number
-    })
-    .then(r => r.data);
-  const diff = await client.repos
-    .compareCommits({
-      owner,
-      repo,
-      base: `${pull.base.repo.owner.login}:${pull.base.ref}`,
-      head: `${pull.head.repo.owner.login}:${pull.head.ref}`
-    })
-    .then(r => r.data);
-  const diffFiles = diff.files.map(f => ({
+async function diff(pr: Pr) {
+  const diff = await getDiff(pr);
+  const diffFiles: FileDiff[] = diff.files.map(f => ({
     additions: f.additions,
     changes: f.changes,
     deletions: f.deletions,
@@ -314,46 +208,38 @@ async function loadPrState(
     sha: f.sha,
     status: f.status as "added" | "modified" | "removed"
   }));
-  const root = await loadRoot(
-    pull.head.repo.owner.login,
-    pull.head.repo.name,
-    pull.head.ref,
-    diffFiles
-  );
+  const commits: Commit[] = diff.commits.map(c => ({
+    sha: c.sha,
+    message: c.commit.message,
+    author: {
+      login: c.author.login,
+      avatarUrl: c.author.avatar_url
+    }
+  }));
+  return { diffFiles, commits };
+}
+
+async function prState(
+  owner: string,
+  repo: string,
+  number: number
+): Promise<PrState> {
+  const [pr, pull] = await getPr(owner, repo, number);
+  const { diffFiles, commits } = await diff(pr);
 
   return {
     title: pull.title,
+    pr,
     description: pull.body,
     state: pull.state,
     number: pull.number,
     author: pull.user.login,
     owner,
     repo,
-    root,
-    base: {
-      repo: {
-        owner: pull.base.repo.owner.login,
-        name: pull.base.repo.name
-      },
-      ref: pull.base.ref,
-      sha: pull.base.sha
-    },
-    head: {
-      repo: {
-        owner: pull.head.repo.owner.login,
-        name: pull.head.repo.name
-      },
-      ref: pull.head.ref,
-      sha: pull.head.sha
-    },
+    root: await root(pr, pr.head, diffFiles),
+    head: pr.head,
+    base: pr.base,
     diffFiles,
-    commits: diff.commits.map(c => ({
-      sha: c.sha,
-      message: c.commit.message,
-      author: {
-        login: c.author.login,
-        avatarUrl: c.author.avatar_url
-      }
-    }))
+    commits
   };
 }

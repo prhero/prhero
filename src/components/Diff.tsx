@@ -1,17 +1,20 @@
 import React from "react";
-import { useDiff, Ref, TreeObject } from "../state/github";
+import { useDiff, TreeObject } from "../state/github";
+import { Pr, Ref } from "../state/api";
 import { DiffEditor } from "./Editor";
 
 export interface Props {
+  pr: Pr;
   base: Ref;
   head: Ref;
   selected: TreeObject;
 }
 
-export function Diff({ base, head, selected }: Props) {
+export function Diff({ pr, base, head, selected }: Props) {
   const diff = useDiff({
-    base: base,
-    head: head,
+    pr,
+    base,
+    head,
     obj: selected
   });
   if (diff) {

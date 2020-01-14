@@ -44,11 +44,11 @@ export function PrTitle({
           merge {commits.length} {commits.length === 1 ? "commit" : "commits"}{" "}
           into{" "}
           <BranchName>
-            {base.repo.owner}:{base.ref}
+            {base.owner}:{base.ref}
           </BranchName>{" "}
           from{" "}
           <BranchName>
-            {head.repo.owner}:{head.ref}
+            {head.owner}:{head.ref}
           </BranchName>
         </Text>
       </Flex.Item>
