@@ -5,7 +5,7 @@ import { Info } from "./Info";
 function getParams() {
   if (window.location.search) {
     const search = new URLSearchParams(window.location.search);
-    if (search.has("owner") && search.has("repo") && search.has("pr")) {
+    if (search.get("owner") && search.get("repo") && search.get("pr")) {
       return {
         owner: search.get("owner")!,
         repo: search.get("repo")!,

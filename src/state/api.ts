@@ -1,7 +1,14 @@
 import Octokit from "@octokit/rest";
 import { cached } from "./cache";
 
-const client = new Octokit();
+const params = new URLSearchParams(window.location.search);
+const token = params.get("token");
+const url = params.get("url");
+
+const client = new Octokit({
+  auth: token || undefined,
+  baseUrl: url || undefined,
+});
 
 export interface Pr {
   key: string;
