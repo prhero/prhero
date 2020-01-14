@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { usePrState, TreeObject } from "../state/github";
 import { Tree } from "./Tree";
 import { Diff } from "./Diff";
-import { EditorHeader } from "./Editor";
+import { EditorHeader, EditorMenuItem } from "./Editor";
 import { PrTitle } from "./Pr";
 import { Flex } from "@primer/components";
 
@@ -20,6 +20,7 @@ export function App({ owner, repo, pr }: Props) {
     );
   }
 
+  const [menu, setMenu] = useState<string>("Tree");
   const [opened, setOpened] = useState<string>();
   const [selected, setSelected] = useState<TreeObject | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -42,14 +43,37 @@ export function App({ owner, repo, pr }: Props) {
       </Flex>
       <Flex height="calc(100% - 70px)">
         <Flex.Item width="300px" height="100%">
-          <Tree
-            onOpen={setOpened}
-            selected={selected}
-            onSelect={setSelected}
-            hovered={hovered}
-            onHover={setHovered}
-            {...prState.root}
-          />
+          <EditorHeader>
+            <EditorMenuItem setMenu={setMenu} selected={menu} name="Tree" />
+            <EditorMenuItem setMenu={setMenu} selected={menu} name="Files" />
+          </EditorHeader>
+          {menu === "Tree" && (
+            <Tree
+              onOpen={setOpened}
+              selected={selected}
+              onSelect={setSelected}
+              hovered={hovered}
+              onHover={setHovered}
+              {...prState.root}
+            />
+          )}
+          {menu === "Files" && (
+            <Tree
+              onOpen={() => {}}
+              selected={selected}
+              onSelect={setSelected}
+              hovered={hovered}
+              onHover={setHovered}
+              {...prState.root}
+              children={prState.diffFiles.map(f => ({
+                type: "file",
+                name: f.filename.split("/").pop()!,
+                path: f.filename,
+                status: f.status,
+                children: []
+              }))}
+            />
+          )}
         </Flex.Item>
         <Flex.Item flex={1} height="100%">
           <EditorHeader>{selected.path}</EditorHeader>

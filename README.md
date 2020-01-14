@@ -15,7 +15,7 @@ What it will do:
 
 ### Try it out
 
-Try the example https://colinjfw.github.io/prhero/?owner=deliverybot&repo=deploybot&pr=24 or
+Try the example https://colinjfw.github.io/prhero/?owner=helm&repo=helm&pr=7323#Tree or
 review any pull request at https://colinjfw.github.io/prhero/.
 
 ### What's missing

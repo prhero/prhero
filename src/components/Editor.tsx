@@ -1,6 +1,7 @@
 import React from "react";
 import { DiffEditor as MonacoDiffEditor } from "@monaco-editor/react";
 import styled from "styled-components";
+import { Link } from "@primer/components";
 
 // TODO: Use default vscode way.
 const languages: { [k: string]: string | undefined } = {
@@ -53,3 +54,24 @@ export const EditorHeader = styled.p`
   color: #586069;
   border-bottom: thin solid #eee;
 `;
+
+export function EditorMenuItem({
+  setMenu,
+  selected,
+  name
+}: {
+  setMenu: (m: string) => void;
+  selected: string;
+  name: string;
+}) {
+  return (
+    <Link
+      onClick={() => setMenu(name)}
+      muted={selected === name}
+      href={`#${name}`}
+      p={2}
+    >
+      {name}
+    </Link>
+  );
+}

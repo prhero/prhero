@@ -10,6 +10,9 @@ const ListItem = styled.li`
   padding: 2px 0;
   cursor: pointer
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 const ListChildren = styled.ul`
   list-style-type: none;
@@ -38,11 +41,11 @@ const ItemText = styled(Text)`
 `;
 const ListContainer = styled.div`
   position: relative;
-  padding-top: 30px;
+  padding-top: 10px;
   font-size: 14px;
   line-height: 20px;
   background-color: #fafbfc;
-  height: 100%;
+  height: calc(100% - 30px);
   overflow-y: scroll;
 `;
 
