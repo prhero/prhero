@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { usePrState } from "../state/github";
+import { usePrState, TreeObject } from "../state/github";
 import { Tree } from "./Tree";
 import { Diff } from "./Diff";
 import { EditorHeader } from "./Editor";
@@ -13,14 +13,21 @@ export interface Props {
 }
 
 export function App({ owner, repo, pr }: Props) {
+  function defaultSelected(root: TreeObject) {
+    return (
+      root.children.find(el => el.name.toLowerCase().includes("readme")) ||
+      root.children[0]
+    );
+  }
+
   const [opened, setOpened] = useState<string>();
-  const [selected, setSelected] = useState<string>();
+  const [selected, setSelected] = useState<TreeObject | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const prState = usePrState(owner, repo, pr, opened);
 
   useEffect(() => {
     if (!selected && prState) {
-      setSelected(prState.diffFiles[0].filename);
+      setSelected(defaultSelected(prState.root));
     }
   }, [prState, selected]);
 
@@ -34,19 +41,18 @@ export function App({ owner, repo, pr }: Props) {
         <PrTitle {...prState} />
       </Flex>
       <Flex height="calc(100% - 70px)">
-        <Flex.Item width="300px" height="100%" overflowY="scroll">
+        <Flex.Item width="300px" height="100%">
           <Tree
             onOpen={setOpened}
             selected={selected}
             onSelect={setSelected}
             hovered={hovered}
             onHover={setHovered}
-            changedFiles={prState.diffFiles.map(f => f.filename)}
             {...prState.root}
           />
         </Flex.Item>
         <Flex.Item flex={1} height="100%">
-          <EditorHeader>{selected}</EditorHeader>
+          <EditorHeader>{selected.path}</EditorHeader>
           <Diff base={prState.base} head={prState.head} selected={selected} />
         </Flex.Item>
       </Flex>

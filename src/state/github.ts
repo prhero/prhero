@@ -3,6 +3,8 @@ import Octokit from "@octokit/rest";
 
 const client = new Octokit();
 
+export type FileStatus = "added" | "modified" | "removed" | "unchanged";
+
 export interface FileDiff {
   additions: number;
   changes: number;
@@ -10,7 +12,7 @@ export interface FileDiff {
   filename: string;
   url: string;
   sha: string;
-  status: string;
+  status: FileStatus;
 }
 
 export interface Commit {
@@ -56,6 +58,7 @@ export interface TreeObject {
   type: "file" | "folder";
   name: string;
   path: string;
+  status: FileStatus;
   children: TreeObject[];
 }
 
@@ -78,7 +81,8 @@ export function usePrState(
           state.head.repo.owner,
           state.head.repo.name,
           state.head.ref,
-          path
+          path,
+          state.diffFiles
         );
         state = { ...state, root: nextRoot };
       }
@@ -92,44 +96,52 @@ export function usePrState(
 export function useDiff({
   base,
   head,
-  path
+  obj
 }: {
   base: Ref;
   head: Ref;
-  path: string;
+  obj: TreeObject;
 }) {
   const [data, setData] = useState<DiffState | null>(null);
   useEffect(() => {
     async function run() {
-      const original = await getContentCached(
-        base.repo.owner,
-        base.repo.name,
-        base.ref,
-        path
-      );
-      const modified = await getContentCached(
-        head.repo.owner,
-        head.repo.name,
-        head.ref,
-        path
-      );
-      setData({ original, modified, filename: path });
+      const original =
+        obj.status === "added"
+          ? ""
+          : await getContentCached(
+              base.repo.owner,
+              base.repo.name,
+              base.ref,
+              obj.path
+            );
+      const modified =
+        obj.status === "removed"
+          ? ""
+          : await getContentCached(
+              head.repo.owner,
+              head.repo.name,
+              head.ref,
+              obj.path
+            );
+      setData({ original, modified, filename: obj.path });
     }
     run();
-  }, [base, head, path]);
+  }, [base, head, obj]);
   return data;
 }
 
 async function loadRoot(
   owner: string,
   repo: string,
-  ref: string
+  ref: string,
+  diffFiles: FileDiff[]
 ): Promise<TreeObject> {
-  const children = await getChildren(owner, repo, "", ref);
+  const children = await getChildren(owner, repo, "", ref, diffFiles);
   return {
     type: "folder",
     path: "/",
     name: "/",
+    status: "unchanged",
     children
   };
 }
@@ -139,7 +151,8 @@ async function mergeChildren(
   owner: string,
   repo: string,
   ref: string,
-  path: string
+  path: string,
+  diffFiles: FileDiff[]
 ): Promise<TreeObject> {
   const result: TreeObject = JSON.parse(JSON.stringify(root)); // Deep copy.
   const segments = path.split("/");
@@ -152,7 +165,7 @@ async function mergeChildren(
   if (cur.children.length > 0) {
     return result;
   }
-  cur.children = await getChildren(owner, repo, path, ref);
+  cur.children = await getChildren(owner, repo, path, ref, diffFiles);
   return result;
 }
 
@@ -160,8 +173,22 @@ async function getChildren(
   owner: string,
   repo: string,
   path: string,
-  ref: string
+  ref: string,
+  diffFiles: FileDiff[]
 ): Promise<TreeObject[]> {
+  function fileStatus(type: "folder" | "file", path: string) {
+    if (type === "folder") {
+      return diffFiles.find(f => f.filename.startsWith(path))
+        ? "modified"
+        : "unchanged";
+    }
+    const diff = diffFiles.find(f => f.filename === path);
+    if (diff) {
+      return diff.status;
+    }
+    return "unchanged";
+  }
+
   const contents = (await client.repos
     .getContents({
       owner,
@@ -181,6 +208,7 @@ async function getChildren(
             type: "folder",
             name: c.name,
             path: c.path,
+            status: fileStatus("folder", c.path),
             children: []
           };
         }
@@ -188,6 +216,7 @@ async function getChildren(
           type: "file",
           name: c.name,
           path: c.path,
+          status: fileStatus("file", c.path),
           children: []
         };
       }
@@ -283,12 +312,13 @@ async function loadPrState(
     filename: f.filename,
     url: f.raw_url,
     sha: f.sha,
-    status: f.status
+    status: f.status as "added" | "modified" | "removed"
   }));
   const root = await loadRoot(
     pull.head.repo.owner.login,
     pull.head.repo.name,
-    pull.head.ref
+    pull.head.ref,
+    diffFiles
   );
 
   return {

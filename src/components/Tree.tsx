@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { TreeObject } from "../state/github";
+import { TreeObject, FileStatus } from "../state/github";
 import { useToggle } from "../state/util";
 import { File, Down, Right } from "../icons";
 import { dirname } from "../util";
@@ -20,7 +20,7 @@ const Line = styled.div`
   position: absolute;
   left: 0;
   width: 300px;
-  margin-top: -2px;
+  margin-top: -1.5px;
   height: 24px;
   pointer-events: none;
 `;
@@ -30,20 +30,27 @@ const SelectedLine = styled(Line)`
 const HoveredLine = styled(Line)`
   background-color: rgba(0, 30, 30, 0.2);
 `;
+const ItemText = styled(Text)`
+  & > svg {
+    display: inline-block;
+    vertical-align: middle;
+  }
+`;
 const ListContainer = styled.div`
+  position: relative;
   padding-top: 30px;
   font-size: 14px;
   line-height: 20px;
   background-color: #fafbfc;
   height: 100%;
+  overflow-y: scroll;
 `;
 
 interface Props extends TreeObject {
   hovered: string | null;
   onHover: (path: string | null) => void;
-  changedFiles: string[];
-  selected: string | null;
-  onSelect: (path: string) => void;
+  selected: TreeObject | null;
+  onSelect: (path: TreeObject) => void;
   onOpen: (path: string) => void;
 }
 
@@ -65,20 +72,15 @@ function TreeItem({
   type,
   path,
   selected,
-  changedFiles,
+  status,
   onOpen,
   onHover,
   hovered,
   onSelect
 }: Props) {
   const [open, toggleOpen] = useToggle();
-  const active = selected === path;
+  const active = selected?.path === path;
   const hover = hovered === path;
-
-  const changed =
-    type === "folder"
-      ? changedFiles.find(f => f.startsWith(path))
-      : changedFiles.includes(path);
 
   function handleClick(e: React.MouseEvent<HTMLElement>) {
     e.stopPropagation();
@@ -88,7 +90,7 @@ function TreeItem({
     }
     if (type === "file") {
       onOpen(dirname(path));
-      onSelect(path);
+      onSelect({ path, status, type, name, children });
     }
   }
 
@@ -102,9 +104,9 @@ function TreeItem({
     >
       {active && <SelectedLine />}
       {hover && !active && <HoveredLine />}
-      <Text color={changed ? "green.5" : "black"}>
+      <ItemText color={fileColor(status)}>
         <Icon type={type} open={open} /> {name}
-      </Text>
+      </ItemText>
       {children.length > 0 && open && (
         <ListChildren>
           {sort(children).map(el => (
@@ -112,7 +114,7 @@ function TreeItem({
               hovered={hovered}
               onHover={onHover}
               onOpen={onOpen}
-              changedFiles={changedFiles}
+              status={status}
               key={el.path}
               selected={selected}
               onSelect={onSelect}
@@ -132,7 +134,7 @@ export function Tree({
   hovered,
   onSelect,
   selected,
-  changedFiles
+  status
 }: Props) {
   return (
     <ListContainer
@@ -146,7 +148,7 @@ export function Tree({
             onOpen={onOpen}
             onHover={onHover}
             hovered={hovered}
-            changedFiles={changedFiles}
+            status={status}
             key={el.path}
             selected={selected}
             onSelect={onSelect}
@@ -156,6 +158,19 @@ export function Tree({
       </ListChildren>
     </ListContainer>
   );
+}
+
+function fileColor(status: FileStatus) {
+  switch (status) {
+    case "added":
+      return "green.8";
+    case "removed":
+      return "red.8";
+    case "modified":
+      return "yellow.8";
+    case "unchanged":
+      return "black";
+  }
 }
 
 function sort(children: TreeObject[]) {

@@ -1,18 +1,18 @@
 import React from "react";
-import { useDiff, Ref } from "../state/github";
+import { useDiff, Ref, TreeObject } from "../state/github";
 import { DiffEditor } from "./Editor";
 
 export interface Props {
   base: Ref;
   head: Ref;
-  selected: string;
+  selected: TreeObject;
 }
 
 export function Diff({ base, head, selected }: Props) {
   const diff = useDiff({
     base: base,
     head: head,
-    path: selected
+    obj: selected
   });
   if (diff) {
     return <DiffEditor {...diff} />;
