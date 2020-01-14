@@ -27,6 +27,19 @@ export interface Ref {
   fullRef: string;
 }
 
+export async function getMyPrs() {
+  try {
+    const me = await client.users.getAuthenticated();
+    return await client.search.issuesAndPullRequests({
+      q: `state:open+type:pr+author:${me.data.login}`,
+    });
+  } catch (err) {
+    return await client.search.issuesAndPullRequests({
+      q: `state:open+type:pr`,
+    });
+  }
+}
+
 export function getContent(pr: Pr, { owner, repo, ref }: Ref, path: string) {
   return cached(pr.key, `content/${owner}/${repo}/${ref}/${path}`, () => {
     return client.repos

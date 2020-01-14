@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Pr, Ref, getContent, getPr, getDiff, getFiles } from "./api";
+import { Pr, Ref, getContent, getPr, getDiff, getFiles, getMyPrs } from "./api";
 
 export type FileStatus = "added" | "modified" | "removed" | "unchanged";
 
@@ -20,6 +20,14 @@ export interface Commit {
     avatarUrl: string;
     login: string;
   };
+}
+
+export interface PrItem {
+  title: string;
+  author: string;
+  number: number;
+  owner: string;
+  repo: string;
 }
 
 export interface PrState {
@@ -82,6 +90,14 @@ export function usePrState(
   return data;
 }
 
+export function useMyPrs() {
+  const [data, setData] = useState<PrItem[]>([]);
+  useEffect(() => {
+    myPrs().then(setData);
+  }, []);
+  return data;
+}
+
 export function useDiff({
   pr,
   base,
@@ -134,6 +150,20 @@ function mergeChildren(
   }
   cur.children = children;
   return result;
+}
+
+async function myPrs(): Promise<PrItem[]> {
+  const prs = await getMyPrs();
+  return prs.data.items.map(item => {
+    const spl = item.repository_url.split('/');
+    return {
+      title: item.title,
+      author: item.user.login,
+      repo: spl.pop()!,
+      owner: spl.pop()!,
+      number: item.number,
+    };
+  });
 }
 
 async function root(

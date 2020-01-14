@@ -1,6 +1,6 @@
 import React from "react";
 import { App } from "./App";
-import { Info } from "./Info";
+import { Pulls } from "./Pulls";
 
 function getParams() {
   if (window.location.search) {
@@ -29,5 +29,5 @@ export function Router() {
   if (params) {
     return <App {...params} />;
   }
-  return <Info />;
+  return <Pulls />;
 }
