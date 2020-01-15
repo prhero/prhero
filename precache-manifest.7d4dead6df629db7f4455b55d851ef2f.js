@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "c965d3f5658539d91773f663122dd513",
+    "revision": "682ac77b7ddf0356c913a7b5cb702ccc",
     "url": "/prhero/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/prhero/static/css/2.764ccc25.chunk.css"
   },
   {
-    "revision": "14a87c44234fe7a770fc",
+    "revision": "79b2bf1f245074d6270c",
     "url": "/prhero/static/css/main.3b437695.chunk.css"
   },
   {
@@ -20,8 +20,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/prhero/static/js/2.bc0cdc04.chunk.js.LICENSE"
   },
   {
-    "revision": "14a87c44234fe7a770fc",
-    "url": "/prhero/static/js/main.09c4187e.chunk.js"
+    "revision": "79b2bf1f245074d6270c",
+    "url": "/prhero/static/js/main.be262ce2.chunk.js"
   },
   {
     "revision": "9bb355abf8e467b72212",
